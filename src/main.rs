@@ -5,31 +5,33 @@ use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 struct ApiResponse {
-    bodies: Vec<CelestialBody>, // Assuming the JSON key for the array is 'bodies'
+    bodies: Vec<CelestialBody>,
 }
 
 #[derive(Deserialize, Debug)]
 struct CelestialBody {
     name: String,
     id: String,
-    is_planet: Option<bool>,     // Optional to handle missing data
-    mass: Option<Mass>,          // Additional field for mass
-    radius: Option<f64>,         // Additional field for radius in kilometers
-    orbital_period: Option<f64>, // Additional field for orbital period in days
+    #[serde(rename = "englishName")]
+    english_name: String,
+    #[serde(rename = "isPlanet")]
+    is_planet: bool,
+    mass: Option<Mass>,
+    radius: Option<f64>,
+    orbital_period: Option<f64>,
 }
 
 #[derive(Deserialize, Debug)]
 struct Mass {
-    mass_value: Option<f64>,    // Mass in kilograms
-    mass_exponent: Option<i32>, // Exponent for scientific notation
+    mass_value: Option<f64>,
+    mass_exponent: Option<i32>,
 }
 
-// Function to fetch data from the Solar System API
 fn fetch_celestial_bodies() -> Result<Vec<CelestialBody>, Error> {
     let url = "https://api.le-systeme-solaire.net/rest/bodies/";
     let response: Response = reqwest::blocking::get(url)?;
-    let api_response: ApiResponse = response.json()?; // Deserialize into ApiResponse
-    Ok(api_response.bodies) // Return just the array of bodies
+    let api_response: ApiResponse = response.json()?;
+    Ok(api_response.bodies)
 }
 
 fn fetch_celestial_body_details(name: &str) -> Result<CelestialBody, Error> {
@@ -38,7 +40,6 @@ fn fetch_celestial_body_details(name: &str) -> Result<CelestialBody, Error> {
     response.json::<CelestialBody>()
 }
 
-// Main function to execute the application
 fn main() {
     let matches = App::new("Solar System Explorer")
         .version("0.1.0")
@@ -60,12 +61,9 @@ fn main() {
         if let Some(name) = matches.value_of("name") {
             match fetch_celestial_body_details(name) {
                 Ok(body) => {
-                    // Improved display of celestial body details
                     println!(
-                        "Name: {}, ID: {}, Is Planet: {}",
-                        body.name,
-                        body.id,
-                        body.is_planet.unwrap_or(false)
+                        "Name: {}, ID: {}, English Name: {}, Is Planet: {}",
+                        body.name, body.id, body.english_name, body.is_planet
                     );
                     if let Some(mass) = &body.mass {
                         if let (Some(value), Some(exponent)) = (mass.mass_value, mass.mass_exponent)
@@ -99,9 +97,7 @@ fn main() {
                 for body in bodies {
                     println!(
                         "Name: {}, ID: {}, Is Planet: {}",
-                        body.name,
-                        body.id,
-                        body.is_planet.unwrap_or(false)
+                        body.name, body.id, body.is_planet
                     );
                 }
             }
