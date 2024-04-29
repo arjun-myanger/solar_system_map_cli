@@ -1,9 +1,9 @@
 // Importing necessary libraries and modules from external crates.
 use clap::{App, Arg, SubCommand}; // For creating and managing the command line interface.
-use colored::*;
+use colored::*; // To add colored text in the console.
 use reqwest::blocking::Response; // To handle HTTP responses in a blocking manner.
 use reqwest::Error; // To handle errors from reqwest operations.
-use serde::Deserialize; // To enable deserialization of JSON data into Rust structures. // To add colored text in the console.
+use serde::Deserialize; // To enable deserialization of JSON data into Rust structures.
 
 // Struct to hold the API response for multiple celestial bodies.
 #[derive(Deserialize, Debug)]
@@ -91,20 +91,33 @@ fn main() {
                         body.is_planet.to_string().blue()
                     );
                     if let Some(mass) = &body.mass {
-                        if mass.mass_value.is_some() && mass.mass_exponent.is_some() {
-                            println!(
-                                "{}: {}e{}",
-                                "Mass".yellow().bold(),
-                                mass.mass_value.unwrap(),
-                                mass.mass_exponent.unwrap()
-                            );
+                        if let (Some(value), Some(exponent)) = (mass.mass_value, mass.mass_exponent)
+                        {
+                            println!("{}: {}e{}", "Mass".yellow().bold(), value, exponent);
                         } else {
                             println!("{}", "Mass data is incomplete or not available.".red());
                         }
                     } else {
                         println!("{}", "No mass data provided by the API.".red());
                     }
-                    // Continue adding colored outputs for other fields...
+                    println!("Density: {} g/cm³", body.density.unwrap_or(0.0));
+                    println!("Gravity: {} m/s²", body.gravity.unwrap_or(0.0));
+                    println!("Escape Velocity: {} m/s", body.escape.unwrap_or(0.0));
+                    println!("Mean Radius: {} km", body.mean_radius.unwrap_or(0.0));
+                    println!("Equatorial Radius: {} km", body.equa_radius.unwrap_or(0.0));
+                    println!("Polar Radius: {} km", body.polar_radius.unwrap_or(0.0));
+                    println!("Flattening: {}", body.flattening.unwrap_or(0.0));
+                    println!("Orbital Period: {} days", body.sideral_orbit.unwrap_or(0.0));
+                    println!(
+                        "Rotation Period: {} hours",
+                        body.sideral_rotation.unwrap_or(0.0)
+                    );
+                    println!("Axial Tilt: {} degrees", body.axial_tilt.unwrap_or(0.0));
+                    println!("Average Temperature: {} K", body.avg_temp.unwrap_or(0));
+                    println!(
+                        "Body Type: {}",
+                        body.body_type.as_deref().unwrap_or("Not specified")
+                    );
                 }
                 Err(e) => println!("{} {}: {}", "Error fetching details for".red(), name, e),
             }
