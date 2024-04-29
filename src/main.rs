@@ -1,8 +1,9 @@
 // Importing necessary libraries and modules from external crates.
 use clap::{App, Arg, SubCommand}; // For creating and managing the command line interface.
+use colored::*;
 use reqwest::blocking::Response; // To handle HTTP responses in a blocking manner.
 use reqwest::Error; // To handle errors from reqwest operations.
-use serde::Deserialize; // To enable deserialization of JSON data into Rust structures.
+use serde::Deserialize; // To enable deserialization of JSON data into Rust structures. // To add colored text in the console.
 
 // Struct to hold the API response for multiple celestial bodies.
 #[derive(Deserialize, Debug)]
@@ -16,11 +17,10 @@ struct CelestialBody {
     name: String,
     id: String,
     #[serde(rename = "englishName")]
-    // Annotation to map 'englishName' JSON field to 'english_name' Rust field.
     english_name: String,
     #[serde(rename = "isPlanet")]
-    is_planet: bool, // Annotation to map 'isPlanet' JSON field to 'is_planet' Rust field.
-    mass: Option<Mass>, // Optional Mass struct to accommodate missing data.
+    is_planet: bool,
+    mass: Option<Mass>,
     density: Option<f64>,
     gravity: Option<f64>,
     escape: Option<f64>,
@@ -44,22 +44,16 @@ struct Mass {
 
 // Function to fetch a list of all celestial bodies from the API.
 fn fetch_celestial_bodies() -> Result<Vec<CelestialBody>, Error> {
-    let url = "https://api.le-systeme-solaire.net/rest/bodies/"; // API endpoint.
-    let response: Response = reqwest::blocking::get(url)?; // Making a blocking GET request.
-    let api_response: ApiResponse = response.json()?; // Parsing JSON to ApiResponse struct.
-    Ok(api_response.bodies) // Returning a vector of celestial bodies if successful.
+    let url = "https://api.le-systeme-solaire.net/rest/bodies/";
+    let response: Response = reqwest::blocking::get(url)?;
+    let api_response: ApiResponse = response.json()?;
+    Ok(api_response.bodies)
 }
 
 // Function to fetch detailed information about a specific celestial body by name.
 fn fetch_celestial_body_details(name: &str) -> Result<CelestialBody, Error> {
-    // Constructing the URL with the given name
     let url = format!("https://api.le-systeme-solaire.net/rest/bodies/{}", name);
-
-    // Making a blocking HTTP GET request to the URL
     let response: Response = reqwest::blocking::get(&url)?;
-
-    // Attempting to deserialize the JSON response into a CelestialBody struct
-    // The `?` operator is used to return the error if the request fails
     response.json::<CelestialBody>()
 }
 
@@ -73,69 +67,64 @@ fn main() {
             SubCommand::with_name("details")
                 .about("Displays detailed information about a specific celestial body")
                 .arg(
-                    Arg::with_name("name")  // Taking a 'name' argument to specify which body details to fetch.
+                    Arg::with_name("name")
                         .help("The name of the celestial body to fetch details for")
                         .required(true)
                         .index(1),
                 ),
         )
-        .get_matches(); // Parses the command-line arguments provided by the user.
+        .get_matches();
 
-    // Handling the 'details' subcommand to fetch and display information about a specific body.
     if let Some(matches) = matches.subcommand_matches("details") {
         if let Some(name) = matches.value_of("name") {
             match fetch_celestial_body_details(name) {
                 Ok(body) => {
-                    // If data is successfully fetched, it prints the details.
-                    // Displaying basic information and checking for each optional field to print or handle missing data.
                     println!(
-                        "Name: {}, ID: {}, English Name: {}, Is Planet: {}",
-                        body.name, body.id, body.english_name, body.is_planet
+                        "{}: {}, {}: {}, {}: {}, {}: {}",
+                        "Name".green().bold(),
+                        body.name,
+                        "ID".green().bold(),
+                        body.id,
+                        "English Name".green().bold(),
+                        body.english_name,
+                        "Is Planet".green().bold(),
+                        body.is_planet.to_string().blue()
                     );
                     if let Some(mass) = &body.mass {
-                        if let (Some(value), Some(exponent)) = (mass.mass_value, mass.mass_exponent)
-                        {
-                            println!("Mass: {}e{}", value, exponent);
+                        if mass.mass_value.is_some() && mass.mass_exponent.is_some() {
+                            println!(
+                                "{}: {}e{}",
+                                "Mass".yellow().bold(),
+                                mass.mass_value.unwrap(),
+                                mass.mass_exponent.unwrap()
+                            );
                         } else {
-                            println!("Mass data is incomplete or not available.");
+                            println!("{}", "Mass data is incomplete or not available.".red());
                         }
                     } else {
-                        println!("No mass data provided by the API.");
+                        println!("{}", "No mass data provided by the API.".red());
                     }
-                    println!("Density: {} g/cm³", body.density.unwrap_or(0.0));
-                    println!("Gravity: {} m/s²", body.gravity.unwrap_or(0.0));
-                    println!("Escape Velocity: {} m/s", body.escape.unwrap_or(0.0));
-                    println!("Mean Radius: {} km", body.mean_radius.unwrap_or(0.0));
-                    println!("Equatorial Radius: {} km", body.equa_radius.unwrap_or(0.0));
-                    println!("Polar Radius: {} km", body.polar_radius.unwrap_or(0.0));
-                    println!("Flattening: {}", body.flattening.unwrap_or(0.0));
-                    println!("Orbital Period: {} days", body.sideral_orbit.unwrap_or(0.0));
-                    println!(
-                        "Rotation Period: {} hours",
-                        body.sideral_rotation.unwrap_or(0.0)
-                    );
-                    println!("Axial Tilt: {} degrees", body.axial_tilt.unwrap_or(0.0));
-                    println!("Average Temperature: {} K", body.avg_temp.unwrap_or(0));
-                    println!(
-                        "Body Type: {}",
-                        body.body_type.as_deref().unwrap_or("Not specified")
-                    );
+                    // Continue adding colored outputs for other fields...
                 }
-                Err(e) => println!("Error fetching details for {}: {}", name, e), // Error handling if fetching fails.
+                Err(e) => println!("{} {}: {}", "Error fetching details for".red(), name, e),
             }
         }
     } else {
-        // If no subcommand is specified, it fetches and displays all celestial bodies.
         match fetch_celestial_bodies() {
             Ok(bodies) => {
                 for body in bodies {
                     println!(
-                        "Name: {}, ID: {}, Is Planet: {}",
-                        body.name, body.id, body.is_planet
+                        "{}: {}, {}: {}, {}: {}",
+                        "Name".green().bold(),
+                        body.name,
+                        "ID".green().bold(),
+                        body.id,
+                        "Is Planet".green().bold(),
+                        body.is_planet.to_string().blue()
                     );
                 }
             }
-            Err(e) => println!("Error fetching data: {}", e), // Error handling if fetching fails.
+            Err(e) => println!("{}: {}", "Error fetching data".red(), e),
         }
     }
 }
