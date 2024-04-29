@@ -17,8 +17,6 @@ struct CelestialBody {
     #[serde(rename = "isPlanet")]
     is_planet: bool,
     mass: Option<Mass>,
-    radius: Option<f64>,
-    orbital_period: Option<f64>,
     density: Option<f64>,
     gravity: Option<f64>,
     escape: Option<f64>,
@@ -88,7 +86,7 @@ fn main() {
                         println!("No mass data provided by the API.");
                     }
 
-                    println!("Density: {}", body.density.unwrap_or(0.0));
+                    println!("Density: {} g/cm³", body.density.unwrap_or(0.0));
                     println!("Gravity: {} m/s²", body.gravity.unwrap_or(0.0));
                     println!("Escape Velocity: {} m/s", body.escape.unwrap_or(0.0));
                     println!("Mean Radius: {} km", body.mean_radius.unwrap_or(0.0));
