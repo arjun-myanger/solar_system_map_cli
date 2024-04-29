@@ -19,6 +19,18 @@ struct CelestialBody {
     mass: Option<Mass>,
     radius: Option<f64>,
     orbital_period: Option<f64>,
+    density: Option<f64>,
+    gravity: Option<f64>,
+    escape: Option<f64>,
+    mean_radius: Option<f64>,
+    equa_radius: Option<f64>,
+    polar_radius: Option<f64>,
+    flattening: Option<f64>,
+    sideral_orbit: Option<f64>,
+    sideral_rotation: Option<f64>,
+    axial_tilt: Option<f64>,
+    avg_temp: Option<i32>,
+    body_type: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -70,23 +82,30 @@ fn main() {
                         {
                             println!("Mass: {}e{}", value, exponent);
                         } else {
-                            println!("Mass data is incomplete.");
+                            println!("Mass data is incomplete or not available.");
                         }
                     } else {
-                        println!("No mass data available.");
+                        println!("No mass data provided by the API.");
                     }
 
-                    if let Some(radius) = body.radius {
-                        println!("Radius: {} kilometers", radius);
-                    } else {
-                        println!("No radius data available.");
-                    }
-
-                    if let Some(period) = body.orbital_period {
-                        println!("Orbital Period: {} days", period);
-                    } else {
-                        println!("No orbital period data available.");
-                    }
+                    println!("Density: {}", body.density.unwrap_or(0.0));
+                    println!("Gravity: {} m/s²", body.gravity.unwrap_or(0.0));
+                    println!("Escape Velocity: {} m/s", body.escape.unwrap_or(0.0));
+                    println!("Mean Radius: {} km", body.mean_radius.unwrap_or(0.0));
+                    println!("Equatorial Radius: {} km", body.equa_radius.unwrap_or(0.0));
+                    println!("Polar Radius: {} km", body.polar_radius.unwrap_or(0.0));
+                    println!("Flattening: {}", body.flattening.unwrap_or(0.0));
+                    println!("Orbital Period: {} days", body.sideral_orbit.unwrap_or(0.0));
+                    println!(
+                        "Rotation Period: {} hours",
+                        body.sideral_rotation.unwrap_or(0.0)
+                    );
+                    println!("Axial Tilt: {} degrees", body.axial_tilt.unwrap_or(0.0));
+                    println!("Average Temperature: {} K", body.avg_temp.unwrap_or(0));
+                    println!(
+                        "Body Type: {}",
+                        body.body_type.as_deref().unwrap_or("Not specified")
+                    );
                 }
                 Err(e) => println!("Error fetching details for {}: {}", name, e),
             }
