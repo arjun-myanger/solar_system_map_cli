@@ -12,14 +12,6 @@ struct CelestialBody {
     name: String,
     id: String,
     is_planet: Option<bool>, // Changed to Option<bool> to handle missing data
-    moons: Option<Vec<Moon>>,
-}
-
-#[derive(Deserialize, Debug)]
-struct Moon {
-    #[allow(dead_code)]
-    moon_id: String,
-    moon_name: String,
 }
 
 // Function to fetch data from the Solar System API
@@ -41,11 +33,6 @@ fn main() {
                     body.id,
                     body.is_planet.unwrap_or(false) // Use `unwrap_or(false)` for display
                 );
-                if let Some(moons) = body.moons {
-                    for moon in moons {
-                        println!(" - Moon: {}", moon.moon_name);
-                    }
-                }
             }
         }
         Err(e) => println!("Error fetching data: {}", e),
